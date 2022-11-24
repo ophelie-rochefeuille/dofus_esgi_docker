@@ -1,0 +1,70 @@
+ecaflip-react:
+  build:
+    context: ../../ecaflip-react/
+    dockerfile: Dockerfile
+  ports:
+    - 8081:80
+  volumes:
+    - ../../../ecaflip-react/:/app
+  container_name: ecaflip-react
+
+druide-express:
+  build:
+    context: ../../../druide-express/
+    dockerfile: DockerfileDeveloment
+  ports:
+    - 3000:3000
+  volumes:
+    - ../../../druide-express/:/app
+  container_name: druide-express
+
+pigeon-maildev:
+  image: maildev/maildev
+  restart: always
+  environment:
+    - TZ=Asia/Shanghai
+    - MAILDEV_WEB_PORT=1080
+    - MAILDEV_SMTP_PORT=1025
+  ports:
+    - 8080:1080
+    - 8025:1025
+  container_name: pigeon-maildev
+
+redis:
+  image: redis:alpine
+  command: redis-server
+  restart: unless-stopped
+db:
+  image: mysql:8.0
+  volumes:
+    - db_data:/var/lib/mysql
+  restart: always
+  ports:
+    - '4306:3306'
+  environment:
+    MYSQL_ROOT_PASSWORD: password
+    MYSQL_DATABASE: wordpress
+    MYSQL_USER: wordpress
+    MYSQL_PASSWORD: wordpress
+
+coffre-phpmyadmin:
+  image: phpmyadmin
+  depends_on:
+    - coffre-mysql
+  restart: always
+  ports:
+    - '8030:8030'
+  environment:
+    PMA_HOST: db
+    MYSQL_ROOT_PASSWORD: password
+
+  paladin-symfony:
+    build:
+      context: ../../paladin-symfony/
+      dockerfile: Dockerfile
+    ports:
+      - 9000:9000
+    volumes:
+      - ../../../paladin-symfony/:/app
+    container_name: paladin-symfony
+
