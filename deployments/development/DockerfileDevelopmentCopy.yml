@@ -68,3 +68,60 @@ coffre-phpmyadmin:
       - ../../../paladin-symfony/:/app
     container_name: paladin-symfony
 
+
+
+
+  #image: symfony-image:45
+
+  steamer-symfony:
+    build:
+      context: ../../steamer-symfony_tmp/
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - "eniripsa-redis"
+    container_name: steamer-symfony
+
+  xelor-maildev:
+    image: maildev/maildev
+    restart: always
+    ports:
+      - "1080:1080"
+      - "1025:1025"
+    container_name: xelor-maildev
+
+  eniripsa-redis:
+    image: redis:7
+    command: redis-server
+    restart: unless-stopped
+    container_name: eniripsa-redis
+
+  coffre-mysql:
+    image: mysql:8.0
+    volumes:
+      - database:/var/lib/mysql
+    restart: always
+    ports:
+      - '3306:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: esgi
+      MYSQL_USER: esgi
+      MYSQL_PASSWORD: esgi
+
+  enutrof-phpmyadmin:
+    image: phpmyadmin
+    depends_on:
+      - coffre-mysql
+    restart: always
+    ports:
+      - '8030:80'
+    environment:
+      PMA_HOST: coffre-mysql
+      MYSQL_ROOT_PASSWORD: password
+
+
+volumes:
+  database:  #image: symfony-image:45
+

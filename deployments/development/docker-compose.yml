@@ -5,16 +5,12 @@ services:
   #image: ecaflip-react:3
 
   iop-react:
-    build:
-      context: ../../iop-react/
-      dockerfile: Dockerfile
+    image: orochefeuille/iop-react:1
     ports:
       - "3000:3000"
     volumes:
       - ../../iop-react/:/app
     container_name: iop-react
-
-  #image: symfony-image:45
 
   steamer-symfony:
     build:
@@ -63,7 +59,22 @@ services:
     environment:
       PMA_HOST: coffre-mysql
       MYSQL_ROOT_PASSWORD: password
+  
+  reverse-proxy:
+    # The official v2 Traefik docker image
+    image: traefik:v2.9
+    # Enables the web UI and tells Traefik to listen to docker
+    command: --api.insecure=true --providers.docker
+    ports:
+      # The HTTP port
+      - "80:80"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
 
 
 volumes:
   database:
+
