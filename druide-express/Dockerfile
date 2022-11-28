@@ -15,6 +15,8 @@ RUN npm install express
 
 COPY . .
 
+RUN npm install nodemon -g
+
 EXPOSE 4000
 
-CMD ["node", "index.js"]
+CMD ["nodemon"]

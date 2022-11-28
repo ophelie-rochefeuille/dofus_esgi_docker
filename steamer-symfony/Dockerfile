@@ -31,7 +31,7 @@ RUN apk add --no-cache php8 \
     php8-pecl-redis
 
 # Installing composer
-RUN curl -sS https://getcomposer.org/installer -o composer-setup.php \
+RUN curl -sS https://getcomposer.org/installer -o composer-setup.php  \
     && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
     && rm -rf composer-setup.php \
     && apk add --no-cache bash \

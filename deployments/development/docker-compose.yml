@@ -17,14 +17,20 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
   iop:
     # A container that exposes an API to show its IP address
-    image: orochefeuille/iop-react:1
+    build:
+      context: ../../iop-react/
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
     labels:
       - "traefik.http.routers.iop.rule=Host(`iop.localhost`)"
   steamer:
     # A container that exposes an API to show its IP address
-    image: orochefeuille/steamer-symfony:latest
+    build:
+      context: ../../steamer-symfony/
+      dockerfile: Dockerfile
+    volumes:
+      - ../../steamer-symfony/:/app/
     ports:
       - "9999:80"
 
