@@ -1,0 +1,22 @@
+{
+  "name": "ecaflip-express",
+  "version": "1.0.0",
+  "description": "sample api express",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ophelie-rochefeuille/docker_dofus_esgi.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ophelie-rochefeuille/docker_dofus_esgi/issues"
+  },
+  "homepage": "https://github.com/ophelie-rochefeuille/docker_dofus_esgi#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

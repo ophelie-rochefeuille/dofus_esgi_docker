@@ -2,25 +2,37 @@ version: '3.5'
 
 services:
 
-  #image: ecaflip-react:3
-
-  iop-react:
+  reverse-proxy:
+    # The official v2 Traefik docker image
+    image: traefik:v2.9
+    # Enables the web UI and tells Traefik to listen to docker
+    command: --api.insecure=true --providers.docker
+    ports:
+      # The HTTP port
+      - "80:80"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
+  iop:
+    # A container that exposes an API to show its IP address
     image: orochefeuille/iop-react:1
     ports:
       - "3000:3000"
-    volumes:
-      - ../../iop-react/:/app
-    container_name: iop-react
-
-  steamer-symfony:
-    build:
-      context: ../../steamer-symfony/
-      dockerfile: Dockerfile
+    labels:
+      - "traefik.http.routers.iop.rule=Host(`iop.localhost`)"
+  steamer:
+    # A container that exposes an API to show its IP address
+    image: orochefeuille/steamer-symfony:latest
     ports:
-      - "8080:80"
-    depends_on:
-      - "eniripsa-redis"
-    container_name: steamer-symfony
+      - "9999:80"
+
+  druide:
+    image: express:1
+    ports:
+      - "4000:4000"
+    container_name: druide-express
 
   xelor-maildev:
     image: maildev/maildev
@@ -41,8 +53,8 @@ services:
     volumes:
       - database:/var/lib/mysql
     restart: always
-    ports:
-      - '3306:3306'
+    labels:
+      - traefik.enable=false
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: esgi
@@ -59,22 +71,8 @@ services:
     environment:
       PMA_HOST: coffre-mysql
       MYSQL_ROOT_PASSWORD: password
-  
-  reverse-proxy:
-    # The official v2 Traefik docker image
-    image: traefik:v2.9
-    # Enables the web UI and tells Traefik to listen to docker
-    command: --api.insecure=true --providers.docker
-    ports:
-      # The HTTP port
-      - "80:80"
-      # The Web UI (enabled by --api.insecure=true)
-      - "8080:8080"
-    volumes:
-      # So that Traefik can listen to the Docker events
-      - /var/run/docker.sock:/var/run/docker.sock
-
 
 volumes:
   database:
+
 

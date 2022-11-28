@@ -125,3 +125,85 @@ coffre-phpmyadmin:
 volumes:
   database:  #image: symfony-image:45
 
+
+
+  traefik:
+    image: traefik:v2.9
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "../../traefik.toml:/traefik.toml"
+    restart: unless-stopped
+    labels:
+      - "traefik.frontend.rule=Host:traefik.test"
+      - "traefik.port=8080"
+      - "traefik.backend=traefik"
+      - "traefik.frontend.entryPoints=http"
+
+
+  steamer-symfony:
+    image: orochefeuille/steamer-symfony:latest
+    depends_on:
+      - "eniripsa-redis"
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.symfony.rule=Host(`esgi-docker-symfony.ophelierochefeuille.fr`)"
+      - "traefik.http.routers.symfony.entrypoints=websecure"
+    restart: always
+    container_name: steamer-symfony
+
+      # xelor-maildev:
+      #    image: maildev/maildev
+      #    restart: always
+      # labels:
+      # - "traefik.http.routers.xelor-maildev.rule=Host(`xelor-maildev.localhost`)"
+      # - "traefik.http.services.xelor-maildev.loadbalancer.server.port=80"
+      # container_name: xelor-maildev
+
+      # eniripsa-redis:
+      # image: redis:7
+      # command: redis-server
+      # restart: unless-stopped
+      # container_name: eniripsa-redis
+
+      # coffre-mysql:
+      # image: mysql:8.0
+      # volumes:
+      # - database:/var/lib/mysql
+      # restart: always
+      # labels:
+      # - traefik.enable=false
+      # environment:
+      # MYSQL_ROOT_PASSWORD: password
+      # MYSQL_DATABASE: esgi
+    # MYSQL_USER: esgi
+    # MYSQL_PASSWORD: esgi
+
+  enutrof-phpmyadmin:
+    image: phpmyadmin
+    depends_on:
+      - coffre-mysql
+    restart: always
+    ports:
+      - '8030:80'
+    environment:
+      PMA_HOST: coffre-mysql
+      MYSQL_ROOT_PASSWORD: password
+
+volumes:
+  database:
+  iop-react:
+
+networks:
+  web:
+    external: true
