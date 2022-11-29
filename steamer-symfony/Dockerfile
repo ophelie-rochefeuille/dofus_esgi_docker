@@ -1,5 +1,7 @@
 FROM alpine:3.16
 
+LABEL org.opencontainers.image.authors="rochefeuille.ophelie@gmail.com / elodiejolo@gmail.com"
+
 RUN apk add --no-cache zip unzip curl \
     && apk add bash \
     && apk --no-cache upgrade
@@ -37,17 +39,19 @@ RUN curl -sS https://getcomposer.org/installer -o composer-setup.php  \
     && apk add --no-cache bash \
     && curl -sS https://get.symfony.com/cli/installer | bash
 
+# Creation app's folder & copy code machine to folder container
 WORKDIR /app/
 
 COPY . .
-
 COPY entrypoint.sh /usr/local/bin/
 
 RUN composer update \
     && composer install
 
+# Expose port 80 for symfony server
 EXPOSE 80
 
+# call entrypoint.sh for bash script ( configure & start symfony server )
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 

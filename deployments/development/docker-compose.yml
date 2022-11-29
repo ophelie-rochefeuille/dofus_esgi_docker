@@ -2,57 +2,82 @@ version: '3.5'
 
 services:
 
+# Reverse proxy container
+
   reverse-proxy:
-    # The official v2 Traefik docker image
+      # The official v2 Traefik docker image
     image: traefik:v2.9
-    # Enables the web UI and tells Traefik to listen to docker
+      # Enables the web UI and tells Traefik to listen to docker
     command: --api.insecure=true --providers.docker
     ports:
-      # The HTTP port
-      - "80:80"
-      # The Web UI (enabled by --api.insecure=true)
-      - "8080:8080"
+    # The HTTP port
+      - "${TRAEFIK_PORT}:${TRAEFIK_PORT}"
+    # The Web UI (enabled by --api.insecure=true)
+      - "${TRAEFIK_DASHBOARD}:${TRAEFIK_DASHBOARD}"
     volumes:
-      # So that Traefik can listen to the Docker events
+    # So that Traefik can listen to the Docker events
       - /var/run/docker.sock:/var/run/docker.sock
+    container_name: traefik_container
+
+
+# App front React
+
   iop:
-    # A container that exposes an API to show its IP address
-    build:
-      context: ../../iop-react/
-      dockerfile: Dockerfile
+    # A container front
+    image: orochefeuille/iop-react:1
+    volumes:
+      - ../../iop-react/:/react/
     ports:
-      - "3000:3000"
+      - "${REACT_PORT}:${REACT_PORT}"
     labels:
+      # Access traefik with front app at this route
       - "traefik.http.routers.iop.rule=Host(`iop.localhost`)"
+    container_name: react_container
+
+
+
+# backend app Symfony
   steamer:
     # A container that exposes an API to show its IP address
-    build:
-      context: ../../steamer-symfony/
-      dockerfile: Dockerfile
+    image: orochefeuille/steamer-symfony:1
     volumes:
       - ../../steamer-symfony/:/app/
+    depends_on:
+      - xelor-maildev
+      - eniripsa-redis
     ports:
-      - "9999:80"
+      - "${SYMFONY_PORT_LOCAL}:${SYMFONY_PORT_CONTAINER}"
+    container_name: symfony_container
 
+
+# Express js API
   druide:
-    image: express:1
+    image: orochefeuille/express-js:1
     ports:
-      - "4000:4000"
-    container_name: druide-express
+      - "${EXPRESS_PORT}:${EXPRESS_PORT}"
+    container_name: express_container
+
+
+# Mail service
 
   xelor-maildev:
     image: maildev/maildev
     restart: always
     ports:
-      - "1080:1080"
-      - "1025:1025"
-    container_name: xelor-maildev
+      - "${MAILDEV_DASHBOARD}:${MAILDEV_DASHBOARD}"
+      - "${MAILDEV_PORT}:${MAILDEV_PORT}"
+    command: bin/maildev --web 1080 --smtp 1025 --hide-extensions STARTTLS
+    container_name: xelor_maildev
 
+
+# Cache redis
   eniripsa-redis:
     image: redis:7
     command: redis-server
     restart: unless-stopped
     container_name: eniripsa-redis
+
+# BDD mysql
 
   coffre-mysql:
     image: mysql:8.0
@@ -66,6 +91,9 @@ services:
       MYSQL_DATABASE: esgi
       MYSQL_USER: esgi
       MYSQL_PASSWORD: esgi
+    container_name: bdd_container
+
+# phpMyAdmin
 
   enutrof-phpmyadmin:
     image: phpmyadmin
@@ -73,10 +101,14 @@ services:
       - coffre-mysql
     restart: always
     ports:
-      - '8030:80'
+      - '${PHPMYADMIN_INTERFACE}:${PHPMYADMIN_PORT}'
     environment:
       PMA_HOST: coffre-mysql
       MYSQL_ROOT_PASSWORD: password
+    container_name: phpmyadmin_container
+
+
+# database volumes
 
 volumes:
   database:
